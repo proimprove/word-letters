@@ -1,637 +1,717 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Игра Слова на букву</title>
-    
-    <!-- Подключаем Tailwind CSS для стилей -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Настройка Import Map для React и иконок -->
-    <script type="importmap">
-    {
-        "imports": {
-            "react": "https://esm.sh/react@18.2.0",
-            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "lucide-react": "https://esm.sh/lucide-react@0.263.1"
-        }
-    }
-    </script>
-    
-    <!-- Подключаем Babel для обработки JSX в браузере -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Слова на букву</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --p:#7F77DD;--pd:#3C3489;--pm:#EEEDFE;--pb:#d0c8f8;--pmut:#AFA9EC;
+  --bg:#f0eeff;--white:#fff;--red:#E24B4A;
+}
+body{font-family:'Montserrat',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 18px 56px;color:var(--pd);}
+.screen{display:none;width:100%;max-width:360px;flex-direction:column;gap:20px;}
+.screen.active{display:flex;}
 
-    <style>
-        /* Скрываем скроллбары для чистоты интерфейса */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        .animate-scale-in { animation: scaleIn 0.3s ease-out forwards; }
-    </style>
+.sound-toggle{position:fixed;top:16px;right:16px;z-index:50;width:36px;height:36px;border-radius:50%;border:.5px solid var(--pb);background:var(--pm);color:var(--pd);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sound-toggle:active{background:var(--p);color:#fff;}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:var(--pmut);cursor:pointer;padding:0;}
+.back-btn:active{opacity:.5;}
+
+/* HOME */
+.home-eyebrow{font-size:10px;font-weight:600;letter-spacing:2.5px;color:var(--pmut);text-transform:uppercase;}
+.home-title{font-size:32px;font-weight:900;color:var(--pd);letter-spacing:1px;line-height:1;margin-top:6px;text-transform:uppercase;}
+.home-sub{font-size:13px;font-weight:300;color:var(--pmut);margin-top:8px;}
+.divider{height:.5px;background:var(--pb);}
+.how-list{display:flex;flex-direction:column;gap:12px;}
+.how-row{display:flex;align-items:flex-start;gap:14px;}
+.how-num{font-size:10px;font-weight:700;color:var(--pmut);min-width:20px;padding-top:2px;}
+.how-text{font-size:11px;font-weight:500;color:var(--pd);line-height:1.6;letter-spacing:.3px;}
+.how-text b{font-weight:800;}
+.rule-box{background:var(--pm);border-left:2px solid var(--p);border-radius:0 12px 12px 0;padding:12px 14px;}
+.rule-box-label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--p);text-transform:uppercase;margin-bottom:6px;}
+.rule-row{font-size:12px;font-weight:600;color:var(--pd);margin-bottom:4px;line-height:1.4;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row em{color:var(--pmut);font-style:normal;font-weight:400;}
+.home-btns{display:flex;flex-direction:column;gap:8px;}
+.btn-main{background:var(--p);color:#fff;border:none;border-radius:14px;padding:16px 20px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;width:100%;transition:opacity .1s;text-transform:uppercase;}
+.btn-main:active{opacity:.85;}
+.btn-main .bleft{display:flex;flex-direction:column;align-items:flex-start;gap:3px;}
+.btn-main .bsub{font-size:10px;font-weight:300;opacity:.7;text-transform:none;}
+.btn-main .barr{font-size:18px;opacity:.6;}
+.btn-ghost{background:var(--pm);color:var(--pd);border:none;border-radius:14px;padding:15px 20px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;width:100%;transition:opacity .1s;text-transform:uppercase;}
+.btn-ghost:active{opacity:.7;}
+.btn-ghost .bleft{display:flex;flex-direction:column;align-items:flex-start;gap:3px;}
+.btn-ghost .bsub{font-size:10px;font-weight:300;color:var(--pmut);text-transform:none;}
+.btn-ghost .barr{font-size:16px;color:var(--pmut);}
+
+/* CUSTOM */
+.section-eyebrow{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;margin-bottom:14px;}
+.mode-list{display:flex;flex-direction:column;gap:8px;}
+.mode-btn{padding:14px 16px;border-radius:12px;border:.5px solid var(--pb);background:var(--pm);color:var(--pd);font-family:'Montserrat',sans-serif;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:flex-start;gap:12px;}
+.mode-btn.selected{background:var(--p);color:#fff;border-color:var(--p);}
+.mode-btn .me{font-size:18px;flex-shrink:0;margin-top:1px;}
+.mode-btn .mtitle{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;}
+.mode-btn .mdesc{font-size:10px;font-weight:400;opacity:.65;margin-top:3px;line-height:1.4;}
+
+/* GAME */
+.game-topbar{display:flex;justify-content:space-between;align-items:center;}
+.game-eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;}
+.game-sess{font-size:12px;font-weight:300;color:var(--pmut);}
+.game-sess b{font-weight:700;color:var(--pd);}
+.game-sess.urgent b{color:var(--red);}
+
+.prog-meta{display:flex;justify-content:space-between;margin-bottom:7px;}
+.prog-label{font-size:10px;font-weight:500;color:var(--pmut);letter-spacing:.3px;}
+.prog-bg{height:2px;background:var(--pb);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--p);border-radius:2px;transition:width 1s linear;}
+
+.mode-tag-row{text-align:center;}
+.mode-tag{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--p);text-transform:uppercase;}
+
+/* LETTER CARD */
+.letter-card{background:var(--white);border-radius:28px;border:.5px solid var(--pb);padding:20px 24px 24px;text-align:center;}
+.letter-eyebrow{font-size:9px;font-weight:600;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;margin-bottom:8px;}
+.letter-big{font-size:96px;font-weight:900;color:var(--pd);letter-spacing:-2px;line-height:1;margin-bottom:4px;}
+.letter-sub{font-size:12px;font-weight:400;color:var(--pmut);margin-bottom:16px;min-height:18px;}
+
+/* Category badge */
+.cat-badge-big{display:inline-block;background:var(--pm);border:.5px solid var(--pb);border-radius:100px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--pd);letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px;}
+/* Forbidden badge */
+.forbidden-badge{display:inline-block;background:#FFF0F0;border:.5px solid #f0c8c8;border-radius:100px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--red);letter-spacing:.3px;text-transform:uppercase;margin-bottom:10px;}
+
+/* Timer */
+.timer-row{display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:10px;}
+.timer-big{font-size:44px;font-weight:200;color:var(--p);letter-spacing:-2px;line-height:1;}
+.timer-unit{font-size:10px;font-weight:600;letter-spacing:1px;color:var(--pmut);text-transform:uppercase;}
+.timer-bar-bg{height:3px;background:var(--pb);border-radius:3px;overflow:hidden;}
+.timer-bar-fill{height:100%;background:var(--p);border-radius:3px;transition:width 1s linear;}
+
+/* Sprint - letter changes fast */
+.sprint-letters{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;}
+.sprint-letter{width:32px;height:32px;border-radius:8px;background:var(--pm);border:.5px solid var(--pb);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--pmut);}
+.sprint-letter.active{background:var(--p);color:#fff;border-color:var(--p);transform:scale(1.15);}
+.sprint-letter.done{background:var(--pd);color:#fff;border-color:var(--pd);opacity:.5;}
+
+/* Alphabet progress */
+.alpha-progress{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+.alpha-letter{width:28px;height:28px;border-radius:6px;background:var(--pm);border:.5px solid var(--pb);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--pmut);}
+.alpha-letter.active{background:var(--p);color:#fff;transform:scale(1.1);}
+.alpha-letter.done{background:var(--pd);color:#fff;opacity:.6;}
+
+.skip-btn{background:transparent;color:var(--pmut);border:.5px solid var(--pb);border-radius:12px;padding:11px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;width:100%;text-transform:uppercase;transition:all .15s;}
+.skip-btn:active{background:var(--pm);}
+.ctrl-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ctrl-btn{padding:12px 6px;background:var(--pm);border:none;border-radius:12px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--pd);letter-spacing:.3px;cursor:pointer;text-align:center;text-transform:uppercase;transition:all .15s;}
+.ctrl-btn:active{opacity:.7;}
+.ctrl-btn.pause-active{background:var(--p);color:#fff;}
+.ctrl-btn.danger-btn{background:#FFF0F0;color:var(--red);}
+
+/* OVERLAYS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(60,52,137,.55);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.overlay-box{background:var(--white);border-radius:24px;padding:32px 28px;text-align:center;max-width:290px;width:92%;}
+.ov-eyebrow{font-size:9px;font-weight:600;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;margin-bottom:10px;}
+.ov-title{font-size:22px;font-weight:900;color:var(--pd);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;}
+.ov-sub{font-size:12px;font-weight:300;color:var(--pmut);margin-bottom:24px;}
+.ov-btn-p{background:var(--p);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;text-transform:uppercase;}
+.ov-btn-s{background:transparent;color:var(--pmut);border:.5px solid var(--pb);border-radius:12px;padding:12px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;width:100%;}
+#countdown-num{font-size:88px;font-weight:900;color:var(--pd);line-height:1;letter-spacing:-4px;margin-bottom:6px;animation:cntpop .3s ease;}
+#countdown-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;}
+@keyframes cntpop{0%{transform:scale(1.3);opacity:.5;}100%{transform:scale(1);opacity:1;}}
+
+/* RESULT */
+.res-eyebrow{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--pmut);text-transform:uppercase;}
+.res-title{font-size:30px;font-weight:900;color:var(--pd);letter-spacing:1px;margin-top:6px;text-transform:uppercase;}
+.res-sub{font-size:13px;font-weight:300;color:var(--pmut);margin-top:4px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-card{background:var(--pm);border-radius:14px;padding:16px;}
+.stat-num{font-size:32px;font-weight:800;color:var(--pd);letter-spacing:-1px;line-height:1;}
+.stat-label{font-size:10px;font-weight:600;color:var(--pmut);letter-spacing:.5px;margin-top:4px;text-transform:uppercase;}
+.restart-btn{background:var(--p);color:#fff;border:none;border-radius:14px;padding:16px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;cursor:pointer;width:100%;text-transform:uppercase;transition:opacity .1s;}
+.restart-btn:active{opacity:.85;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:.5px solid var(--pb);}
+.setting-row:last-child{border-bottom:none;padding-bottom:0;}
+.sname{font-size:11px;font-weight:700;color:var(--pd);text-transform:uppercase;letter-spacing:.8px;}
+.sdesc{font-size:10px;font-weight:400;color:var(--pmut);margin-top:2px;}
+.stepper{display:flex;align-items:center;gap:10px;}
+.step-btn{width:32px;height:32px;border-radius:50%;border:.5px solid var(--pb);background:var(--pm);color:var(--pd);font-size:18px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.step-btn:active{background:var(--p);color:#fff;border-color:var(--p);}
+.step-val{font-size:13px;font-weight:700;color:var(--pd);min-width:44px;text-align:center;}
+
+/* Theory */
+.theory-title{font-size:28px;font-weight:900;color:var(--pd);letter-spacing:1px;text-transform:uppercase;}
+.theory-sub{font-size:13px;font-weight:300;color:var(--pmut);margin-top:6px;}
+.tsec{padding:16px 0;border-bottom:.5px solid var(--pb);}
+.tsec:last-child{border-bottom:none;}
+.tsec-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--p);text-transform:uppercase;margin-bottom:8px;}
+.tsec-body{font-size:13px;font-weight:400;color:var(--pd);line-height:1.65;}
+.tsec-body b{font-weight:700;}
+.theory-tip{background:var(--pm);border-left:2px solid var(--p);border-radius:0 10px 10px 0;padding:12px 14px;margin-top:10px;font-size:12px;font-weight:500;color:var(--pd);line-height:1.5;}
+</style>
 </head>
-<body class="bg-gray-100 text-gray-900 h-screen w-full overflow-hidden selection:bg-indigo-100">
-    <div id="root" class="h-full w-full"></div>
+<body>
 
-    <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useRef } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-            Play, Pause, SkipForward, Square, Clock, Settings, RotateCcw, 
-            Info, Zap, Sparkles, ChevronLeft, Sliders, Type, Hash, BookOpen, Volume2, VolumeX
-        } from 'lucide-react';
+<button class="sound-toggle" id="sound-toggle">🔊</button>
 
-        // --- ДАННЫЕ ДЛЯ ИГРЫ ---
-        
-        // Буквы русского алфавита (без сложных Ъ, Ь, Ы, Й)
-        const LETTERS = [
-            'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К', 
-            'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 
-            'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я'
-        ];
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div>
+    <div class="home-eyebrow">Упражнение</div>
+    <div class="home-title">Слова на букву</div>
+    <div class="home-sub">Скорость мышления и словарный запас</div>
+  </div>
+  <div class="divider"></div>
+  <div class="how-list">
+    <div class="how-row"><span class="how-num">01</span><span class="how-text">ВИДИШЬ БУКВУ — НАЗЫВАЕШЬ ВСЛУХ <b>ЛЮБЫЕ СУЩЕСТВИТЕЛЬНЫЕ</b></span></div>
+    <div class="how-row"><span class="how-num">02</span><span class="how-text"><b>ПРИОРИТЕТ — ИМЕНА НАРИЦАТЕЛЬНЫЕ.</b> НЕЛЬЗЯ ИМЕНА СОБСТВЕННЫЕ, ГОРОДА, МАРКИ</span></div>
+    <div class="how-row"><span class="how-num">03</span><span class="how-text">5 РЕЖИМОВ — <b>ОТ ПРОСТОГО К СЛОЖНОМУ</b></span></div>
+  </div>
+  <div class="rule-box">
+    <div class="rule-box-label">Буква «К» — приоритет нарицательные</div>
+    <div class="rule-row">✅ Кот, кастрюля, крыло, корень, кирпич...</div>
+    <div class="rule-row" style="font-size:11px;color:var(--pmut);font-weight:500;">Имя нарицательное — это слово, которое называет класс предметов, а не конкретный объект</div>
+    <div class="rule-row">❌ <em>Катя, Киев, Камаз, Кока-Кола...</em></div>
+  </div>
+  <div class="divider"></div>
+  <div class="home-btns">
+    <button class="btn-main" id="btn-quick">
+      <div class="bleft"><span>Быстрый старт</span><span class="bsub">Классика · нарицательные · 30 сек</span></div>
+      <span class="barr">→</span>
+    </button>
+    <button class="btn-ghost" id="btn-custom">
+      <div class="bleft"><span>Своя игра</span><span class="bsub">Выбери режим</span></div>
+      <span class="barr">→</span>
+    </button>
+    <button class="btn-ghost" id="btn-theory">
+      <div class="bleft"><span>Теория</span><span class="bsub">Зачем это тренировать</span></div>
+      <span class="barr">→</span>
+    </button>
+  </div>
+</div>
 
-        // Темы для генерации
-        const TOPICS = [
-            'Еда и напитки', 'Путешествия и страны', 'Профессии', 'Животные и птицы', 
-            'Города', 'Спорт и инвентарь', 'Одежда и обувь', 'Технологии и гаджеты', 
-            'Кино и искусство', 'Природа и растения', 'Чувства и эмоции', 'Дом и мебель', 
-            'Школа и учеба', 'Хобби и развлечения', 'Транспорт', 'Космос', 
-            'Музыка и инструменты', 'Наука', 'Медицина и здоровье', 'Бизнес и деньги'
-        ];
+<!-- CUSTOM -->
+<div class="screen" id="screen-custom">
+  <button class="back-btn" id="back-custom">← Назад</button>
+  <div>
+    <div class="section-eyebrow">Режим игры</div>
+    <div class="mode-list" id="mode-list">
+      <button class="mode-btn selected" data-mode="classic">
+        <span class="me">🔤</span><div><div class="mtitle">Классика</div><div class="mdesc">Одна буква, 30 сек — называй любые существительные</div></div>
+      </button>
+      <button class="mode-btn" data-mode="category">
+        <span class="me">🗂️</span><div><div class="mtitle">Буква + Категория</div><div class="mdesc">Буква и категория одновременно. Сложнее!</div></div>
+      </button>
+      <button class="mode-btn" data-mode="forbidden">
+        <span class="me">🚫</span><div><div class="mtitle">Запрещённые слова</div><div class="mdesc">Называй слова на букву — но не из запрещённой категории</div></div>
+      </button>
+      <button class="mode-btn" data-mode="sprint">
+        <span class="me">⚡</span><div><div class="mtitle">Алфавитный спринт</div><div class="mdesc">Буква меняется каждые 5 сек — успей назвать хоть одно</div></div>
+      </button>
+      <button class="mode-btn" data-mode="alphabet">
+        <span class="me">🔡</span><div><div class="mtitle">Тематический алфавит</div><div class="mdesc">А, Б, В... — весь алфавит в одной категории</div></div>
+      </button>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div>
+    <div class="section-eyebrow">Настройки</div>
+    <div class="setting-row">
+      <div><div class="sname">Время на букву</div><div class="sdesc">Секунд на одно слово</div></div>
+      <div class="stepper">
+        <button class="step-btn" id="letter-sec-minus">−</button>
+        <span class="step-val" id="letter-sec-val">30 сек</span>
+        <button class="step-btn" id="letter-sec-plus">+</button>
+      </div>
+    </div>
+    <div class="setting-row" id="sprint-dur-row">
+      <div><div class="sname">Время спринта</div><div class="sdesc">Общее время для спринта</div></div>
+      <div class="stepper">
+        <button class="step-btn" id="sprint-dur-minus">−</button>
+        <span class="step-val" id="sprint-dur-val">2 мин</span>
+        <button class="step-btn" id="sprint-dur-plus">+</button>
+      </div>
+    </div>
+  </div>
 
-        const DURATION_PRESETS = [60, 180, 300, 600, 900];
-        const INTERVAL_PRESETS = [15, 30, 45, 60, 90];
+  <button class="btn-main" id="custom-start-btn">
+    <div class="bleft"><span>Начать игру</span></div><span class="barr">→</span>
+  </button>
+</div>
 
-        // --- УТИЛИТЫ ---
+<!-- THEORY -->
+<div class="screen" id="screen-theory">
+  <button class="back-btn" id="back-theory">← Назад</button>
+  <div>
+    <div class="home-eyebrow">Теория</div>
+    <div class="theory-title">Слова на букву</div>
+    <div class="theory-sub">Почему это одно из лучших упражнений для речи</div>
+  </div>
+  <div class="divider"></div>
+  <div>
+    <div class="tsec">
+      <div class="tsec-label">В чём сложность?</div>
+      <div class="tsec-body">Кажется просто — но мозг <b>автоматически подсовывает имена и города.</b> Сказать «Катя» на букву К легко. Сказать «кастрюля» — нужна доля секунды дольше. Именно эта задержка и тренирует.</div>
+    </div>
+    <div class="tsec">
+      <div class="tsec-label">Что развивает?</div>
+      <div class="tsec-body"><b>Скорость лексического доступа</b> — способность быстро находить слова в памяти. Это напрямую влияет на беглость речи, уверенность в разговоре и скорость мышления.
+      <div class="theory-tip">📌 Исследования показывают: люди с богатым словарным запасом быстрее принимают решения — потому что мозг лучше кодирует понятия через слова.</div></div>
+    </div>
+    <div class="tsec">
+      <div class="tsec-label">Почему только нарицательные?</div>
+      <div class="tsec-body"><b>Имена нарицательные — это приоритет.</b> Они обозначают классы предметов и явлений: «стол», «река», «страх». Имена собственные (Катя, Москва) — «читерские»: они привязаны к одному образу и не требуют поиска по словарю. Нарицательные тренируют по-настоящему.</div>
+    </div>
+    <div class="tsec">
+      <div class="tsec-label">Как прогрессировать?</div>
+      <div class="tsec-body">Начни с <b>Классики</b>. Когда 30 секунд станут лёгкими — переходи к <b>Букве + Категория.</b> Самый сложный уровень — <b>Тематический алфавит:</b> нужно удерживать категорию и последовательно идти по буквам.
+      <div class="theory-tip">🎯 Цель в Классике: 8+ слов за 30 секунд без пауз.</div></div>
+    </div>
+  </div>
+</div>
 
-        const formatTime = (seconds) => {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
-        };
+<!-- GAME -->
+<div class="screen" id="screen-game">
+  <div class="game-topbar">
+    <span class="game-eyebrow" id="g-mode-label">Классика</span>
+    <span class="game-sess" id="g-sess-wrap">Осталось <b id="g-sess-time">0:30</b></span>
+  </div>
+  <div>
+    <div class="prog-meta">
+      <span class="prog-label" id="g-prog-label">Раунд 1</span>
+      <span class="prog-label" id="g-prog-pct"></span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="g-prog-bar" style="width:100%"></div></div>
+  </div>
 
-        const getRandomItem = (array, history = []) => {
-            const available = array.filter(item => !history.includes(item));
-            if (available.length === 0) {
-                // Если всё использовали, берем просто случайное из всего массива
-                return array[Math.floor(Math.random() * array.length)];
-            }
-            return available[Math.floor(Math.random() * available.length)];
-        };
+  <div class="letter-card" id="letter-card">
+    <div class="letter-eyebrow" id="letter-eyebrow">Называй слова на букву</div>
+    <div class="letter-big" id="letter-big">К</div>
+    <div id="cat-badge-wrap"></div>
+    <div class="letter-sub" id="letter-sub"></div>
+    <div class="timer-row">
+      <span class="timer-big" id="g-timer">30</span>
+      <span class="timer-unit">сек</span>
+    </div>
+    <div class="timer-bar-bg"><div class="timer-bar-fill" id="g-timer-bar" style="width:100%"></div></div>
+  </div>
 
-        // --- ПРИЛОЖЕНИЕ ---
+  <!-- Sprint letters row -->
+  <div id="sprint-row" style="display:none;">
+    <div class="sprint-letters" id="sprint-letters"></div>
+  </div>
 
-        function App() {
-            const [screen, setScreen] = useState('SETTINGS'); 
-            const [showSettings, setShowSettings] = useState(false);
+  <!-- Alphabet progress -->
+  <div id="alpha-row" style="display:none;">
+    <div class="alpha-progress" id="alpha-progress"></div>
+  </div>
 
-            // Настройки
-            const [totalDuration, setTotalDuration] = useState(180);
-            const [pairInterval, setPairInterval] = useState(30);
-            const [useTopic, setUseTopic] = useState(true);
-            const [soundEnabled, setSoundEnabled] = useState(true);
-            
-            // Состояние игры
-            const [isPlaying, setIsPlaying] = useState(false);
-            const [roundTimeLeft, setRoundTimeLeft] = useState(0);
-            const [pairTimeLeft, setPairTimeLeft] = useState(0);
-            
-            const [currentLetter, setCurrentLetter] = useState('');
-            const [currentTopic, setCurrentTopic] = useState('');
-            
-            const [lettersHistory, setLettersHistory] = useState([]);
-            const [topicsHistory, setTopicsHistory] = useState([]);
-            const [pairsCount, setPairsCount] = useState(0);
+  <button class="skip-btn" id="g-skip">Следующая буква →</button>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="g-pause"><span id="g-pause-icon">⏸</span> <span id="g-pause-lbl">Пауза</span></button>
+    <button class="ctrl-btn danger-btn" id="g-stop">⏹ Стоп</button>
+    <button class="ctrl-btn" id="g-menu">🏠 Меню</button>
+  </div>
+</div>
 
-            const tickRate = 100;
-            const timerRef = useRef(null);
-            
-            // Звук (Web Audio API)
-            const audioCtxRef = useRef(null);
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div>
+    <div class="res-eyebrow">Раунд завершён</div>
+    <div class="res-title" id="r-title">Отлично!</div>
+    <div class="res-sub" id="r-sub">Словарный запас в деле</div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" id="r-rounds">0</div><div class="stat-label">Букв прошло</div></div>
+    <div class="stat-card"><div class="stat-num" id="r-mode">—</div><div class="stat-label">Режим</div></div>
+  </div>
+  <button class="restart-btn" id="r-restart">Играть ещё раз →</button>
+</div>
 
-            const initAudio = () => {
-                if (!audioCtxRef.current) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) audioCtxRef.current = new AudioContext();
-                }
-                if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-                    audioCtxRef.current.resume();
-                }
-            };
+<!-- PAUSE -->
+<div class="overlay" id="pause-overlay">
+  <div class="overlay-box">
+    <div class="ov-eyebrow">Игра</div>
+    <div class="ov-title">Пауза</div>
+    <div class="ov-sub">Таймер остановлен</div>
+    <button class="ov-btn-p" id="pause-resume">Продолжить →</button>
+    <button class="ov-btn-s" id="pause-menu-btn">← Выйти в меню</button>
+  </div>
+</div>
 
-            const playTick = () => {
-                if (!soundEnabled || !audioCtxRef.current) return;
-                try {
-                    const ctx = audioCtxRef.current;
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(1000, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.05);
-                } catch(e) {}
-            };
+<!-- COUNTDOWN -->
+<div class="overlay" id="countdown-overlay">
+  <div class="overlay-box" style="padding:44px 28px;">
+    <div id="countdown-num">3</div>
+    <div id="countdown-label">Приготовься</div>
+  </div>
+</div>
 
-            const playBeep = () => {
-                if (!soundEnabled || !audioCtxRef.current) return;
-                try {
-                    const ctx = audioCtxRef.current;
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.15);
-                } catch(e) {}
-            };
+<script>
+// ══ DATA ══
+const ALPHABET = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ'.split('');
+// Removed hard letters: Ё,Й,Ъ,Ы,Ь,Ф,Щ,Х,Ц — keep playable set
+const EASY_LETTERS = 'АБВГДЕЖЗИКЛМНОПРСТУЭЮЯ'.split('');
 
-            const playEndSound = () => {
-                if (!soundEnabled || !audioCtxRef.current) return;
-                try {
-                    const ctx = audioCtxRef.current;
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(400, ctx.currentTime);
-                    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.2);
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    gain.gain.linearRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.5);
-                } catch(e) {}
-            };
+const CATEGORIES = {
+  animals:   { name:'Животные', emoji:'🐾' },
+  food:      { name:'Еда и напитки', emoji:'🍎' },
+  nature:    { name:'Природа', emoji:'🌿' },
+  objects:   { name:'Предметы', emoji:'🪑' },
+  body:      { name:'Тело и здоровье', emoji:'💪' },
+  clothes:   { name:'Одежда', emoji:'👗' },
+  transport: { name:'Транспорт', emoji:'🚗' },
+  home:      { name:'Дом и быт', emoji:'🏠' },
+  sport:     { name:'Спорт', emoji:'⚽' },
+  nature2:   { name:'Явления природы', emoji:'⛈️' },
+};
 
-            // --- ЛОГИКА ---
+const CAT_KEYS = Object.keys(CATEGORIES);
 
-            const startGame = (overrides = {}) => {
-                initAudio(); // Инициализация аудиоконтекста после клика
-                const configDuration = overrides.duration || totalDuration;
-                const configInterval = overrides.interval || pairInterval;
-                const configUseTopic = overrides.useTopic !== undefined ? overrides.useTopic : useTopic;
+const MODE_NAMES = {
+  classic: 'Классика',
+  category: 'Буква + Категория',
+  forbidden: 'Запрещённые слова',
+  sprint: 'Алфавитный спринт',
+  alphabet: 'Тематический алфавит'
+};
 
-                if (overrides.duration) setTotalDuration(overrides.duration);
-                if (overrides.interval) setPairInterval(overrides.interval);
-                if (overrides.useTopic !== undefined) setUseTopic(overrides.useTopic);
+// ══ AUDIO ══
+let actx, soundOn = true;
+function ac(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
+function beep(f,d,v=.3){if(!soundOn)return;try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.start();o.stop(c.currentTime+d);}catch(e){}}
+const sndTick = () => { beep(440,.08,.2); setTimeout(()=>beep(330,.12,.18),110); };
+const sndEnd  = () => { beep(660,.18,.35);setTimeout(()=>beep(528,.18,.3),220);setTimeout(()=>beep(396,.4,.25),440); };
+const sndNext = () => { beep(528,.12,.25); };
+document.addEventListener('click',()=>{try{ac();}catch(e){}},{once:true});
+document.getElementById('sound-toggle').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  document.getElementById('sound-toggle').textContent=soundOn?'🔊':'🔇';
+});
 
-                setRoundTimeLeft(configDuration);
-                setPairTimeLeft(configInterval);
-                setLettersHistory([]);
-                setTopicsHistory([]);
-                setPairsCount(0);
-                
-                const firstLetter = getRandomItem(LETTERS, []);
-                const firstTopic = configUseTopic ? getRandomItem(TOPICS, []) : '';
-                
-                setCurrentLetter(firstLetter);
-                setCurrentTopic(firstTopic);
-                setLettersHistory([firstLetter]);
-                if (firstTopic) setTopicsHistory([firstTopic]);
-                
-                setIsPlaying(true);
-                setScreen('GAME');
-            };
+// ══ STATE ══
+let cfg = { mode:'classic', letterSec:30, sprintDurMin:2 };
+let gs = {};
+let mainT, letterT;
 
-            const handleQuickStart = () => {
-                startGame({
-                    duration: 180, // 3 минуты всего
-                    interval: 30,   // 30 секунд на букву
-                    useTopic: true
-                });
-            };
+// ══ NAV ══
+// ── SETTINGS STEPPERS ──
+function stepper(mi,pi,vi,key,min,max,unit){
+  const u=()=>document.getElementById(vi).textContent=cfg[key]+unit;
+  document.getElementById(mi).addEventListener('click',()=>{if(cfg[key]>min){cfg[key]--;u();}});
+  document.getElementById(pi).addEventListener('click',()=>{if(cfg[key]<max){cfg[key]++;u();}});
+}
+// Custom stepper with step of 10
+function stepperBy(mi,pi,vi,key,min,max,step,unit){
+  const u=()=>document.getElementById(vi).textContent=cfg[key]+unit;
+  document.getElementById(mi).addEventListener('click',()=>{if(cfg[key]-step>=min){cfg[key]-=step;u();}});
+  document.getElementById(pi).addEventListener('click',()=>{if(cfg[key]+step<=max){cfg[key]+=step;u();}});
+}
+stepperBy('letter-sec-minus','letter-sec-plus','letter-sec-val','letterSec',10,60,10,' сек');
+stepper('sprint-dur-minus','sprint-dur-plus','sprint-dur-val','sprintDurMin',1,5,' мин');
 
-            const nextPair = () => {
-                const newLetter = getRandomItem(LETTERS, lettersHistory);
-                const newTopic = useTopic ? getRandomItem(TOPICS, topicsHistory) : '';
-                
-                setCurrentLetter(newLetter);
-                setCurrentTopic(newTopic);
-                
-                setLettersHistory(prev => [...prev, newLetter]);
-                if (newTopic) setTopicsHistory(prev => [...prev, newTopic]);
-                
-                setPairsCount(prev => prev + 1);
-                setPairTimeLeft(pairInterval);
-            };
+// Show/hide sprint duration row based on mode
+document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.getElementById('sprint-dur-row').style.display =
+    (b.dataset.mode==='sprint') ? 'flex' : 'none';
+}));
+// Init hidden
+document.getElementById('sprint-dur-row').style.display='none';
 
-            const stopGame = () => {
-                setIsPlaying(false);
-                if (timerRef.current) clearInterval(timerRef.current);
-                setScreen('RESULTS');
-            };
+document.getElementById('btn-quick').addEventListener('click',()=>{ cfg={mode:'classic'}; startGame(); });
+document.getElementById('btn-custom').addEventListener('click',()=>showScreen('custom'));
+document.getElementById('btn-theory').addEventListener('click',()=>showScreen('theory'));
+document.getElementById('back-custom').addEventListener('click',()=>showScreen('home'));
+document.getElementById('back-theory').addEventListener('click',()=>showScreen('home'));
+document.getElementById('r-restart').addEventListener('click',()=>showScreen('home'));
 
-            useEffect(() => {
-                if (screen === 'GAME' && isPlaying) {
-                    timerRef.current = setInterval(() => {
-                        
-                        setRoundTimeLeft(prev => {
-                            const next = prev - (tickRate / 1000);
-                            if (next <= 0) {
-                                playEndSound();
-                                stopGame();
-                                return 0;
-                            }
-                            return next;
-                        });
+document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('selected'));
+  b.classList.add('selected'); cfg.mode=b.dataset.mode;
+}));
+document.getElementById('custom-start-btn').addEventListener('click',startGame);
 
-                        setPairTimeLeft(prev => {
-                            const next = prev - (tickRate / 1000);
-                            
-                            // Звук тиканья на последних 3 секундах
-                            if (Math.floor(prev) > Math.floor(next) && Math.floor(next) > 0 && Math.floor(next) <= 3) {
-                                playTick();
-                            }
-                            
-                            if (next <= 0) {
-                                playBeep();
-                                nextPair();
-                                return pairInterval;
-                            }
-                            return next;
-                        });
+// ══ HELPERS ══
+function shuffle(a){return [...a].sort(()=>Math.random()-.5);}
+function randFrom(a){return a[Math.floor(Math.random()*a.length)];}
+function randLetter(){return randFrom(EASY_LETTERS);}
+function randCat(){return randFrom(CAT_KEYS);}
 
-                    }, tickRate);
-                } else {
-                    clearInterval(timerRef.current);
-                }
-                return () => clearInterval(timerRef.current);
-            }, [screen, isPlaying, pairInterval, lettersHistory, topicsHistory, soundEnabled]);
+// ══ GAME START ══
+function startGame(){
+  clearInterval(mainT); clearInterval(letterT);
 
-            // --- ЭКРАНЫ ---
+  const mode = cfg.mode;
+  const letters = shuffle(EASY_LETTERS);
+  const cat = randCat();
+  const forbidCat = randCat();
 
-            const renderStartScreen = () => {
-                if (showSettings) return renderSettings();
-                
-                return (
-                    <div className="flex flex-col h-full max-w-md mx-auto p-6 animate-fade-in bg-white justify-center">
-                        <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center p-4 bg-indigo-50 rounded-2xl mb-4">
-                                <Type className="w-10 h-10 text-indigo-600" />
-                            </div>
-                            <h1 className="text-4xl font-black text-gray-900 mb-2">Слова на букву</h1>
-                            
-                            <div className="bg-indigo-50/50 rounded-xl p-3 max-w-xs mx-auto border border-indigo-100">
-                                <p className="text-indigo-900 text-sm font-medium leading-snug">
-                                   ⚡️ Бот дает <b>Букву</b> и (если включено) <b>Тему</b>.<br/> 
-                                   Называй <b>существительные</b> вслух, стараясь <span className="text-indigo-600 font-bold">избегать пауз "эээ"</span>.
-                                </p>
-                            </div>
-                        </div>
+  gs = {
+    mode, letters, letterIdx:0,
+    cat, forbidCat,
+    roundsPlayed:0,
+    paused:false, pauseLeft:0,
+    // sprint
+    sprintLetters: EASY_LETTERS.slice(0,10),
+    sprintIdx:0, sprintSec:0, sprintTotal:cfg.sprintDurMin*60,
+    // alphabet
+    alphaIdx:0, alphaCat:cat, alphaTotal: EASY_LETTERS.length
+  };
 
-                        <div className="space-y-4 w-full">
-                            <button
-                                onClick={handleQuickStart}
-                                className="w-full group relative bg-indigo-600 hover:bg-indigo-700 text-white p-5 rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-between overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-white/20 p-2 rounded-xl">
-                                        <Zap className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-bold text-xl leading-none mb-1">Быстрый старт</div>
-                                        <div className="text-indigo-100 text-xs font-medium">Смена каждые 30 сек</div>
-                                    </div>
-                                </div>
-                                <div className="bg-white/20 p-2 rounded-full">
-                                    <Play className="w-5 h-5 fill-current" />
-                                </div>
-                            </button>
+  // Setup UI
+  document.getElementById('g-mode-label').textContent = MODE_NAMES[mode].toUpperCase();
+  document.getElementById('g-sess-wrap').classList.remove('urgent');
 
-                            <button
-                                onClick={() => setShowSettings(true)}
-                                className="w-full bg-white border-2 border-gray-100 hover:border-gray-300 text-gray-700 p-5 rounded-2xl transition-all active:bg-gray-50 flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-gray-100 p-2 rounded-xl">
-                                        <Sliders className="w-6 h-6 text-gray-500" />
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-bold text-lg leading-none mb-1">Своя игра</div>
-                                        <div className="text-gray-400 text-xs font-medium">Настройки времени и звука</div>
-                                    </div>
-                                </div>
-                                <div className="text-gray-300">
-                                    <ChevronLeft className="w-5 h-5 rotate-180" />
-                                </div>
-                            </button>
-                        </div>
+  // Show/hide extra rows
+  document.getElementById('sprint-row').style.display = mode==='sprint' ? 'block' : 'none';
+  document.getElementById('alpha-row').style.display = mode==='alphabet' ? 'block' : 'none';
+  document.getElementById('g-skip').style.display = (mode==='sprint'||mode==='alphabet') ? 'none' : '';
 
-                        <div className="mt-8 flex justify-center">
-                            <button onClick={() => setScreen('RULES')} className="text-gray-400 font-medium text-sm flex items-center gap-2 hover:text-gray-600 transition-colors">
-                                <Info className="w-4 h-4" /> Как играть?
-                            </button>
-                        </div>
-                    </div>
-                );
-            };
+  if(mode==='sprint') buildSprintRow();
+  if(mode==='alphabet') buildAlphaRow();
 
-            const renderSettings = () => (
-                <div className="flex flex-col h-full max-w-md mx-auto p-4 animate-fade-in bg-gray-50">
-                    <div className="flex items-center justify-between mb-6 mt-2">
-                        <button 
-                            onClick={() => setShowSettings(false)}
-                            className="p-2 -ml-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                            <ChevronLeft size={24} />
-                        </button>
-                        <h2 className="text-xl font-bold text-gray-800">Настройки</h2>
-                        <div className="w-10"></div> {/* Spacer for center alignment */}
-                    </div>
+  showScreen('game');
+  startCountdown();
+}
 
-                    <div className="flex-1 space-y-4">
-                        {/* Звук */}
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                                {soundEnabled ? <Volume2 className="w-5 h-5 text-indigo-500" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
-                                Звуковые сигналы таймера
-                            </label>
-                            <button
-                                onClick={() => setSoundEnabled(!soundEnabled)}
-                                className={`w-14 h-8 rounded-full relative transition-colors ${soundEnabled ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                            >
-                                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${soundEnabled ? 'left-7' : 'left-1'}`} />
-                            </button>
-                        </div>
+function buildSprintRow(){
+  const el = document.getElementById('sprint-letters');
+  el.innerHTML = gs.sprintLetters.map((l,i)=>`<div class="sprint-letter${i===0?' active':''}" id="sl-${i}">${l}</div>`).join('');
+}
 
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                                <Clock className="w-5 h-5 text-indigo-500" /> Общее время игры
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {DURATION_PRESETS.map(t => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setTotalDuration(t)}
-                                        className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
-                                            totalDuration === t 
-                                            ? 'bg-indigo-600 text-white shadow-md' 
-                                            : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {t >= 60 ? `${t/60} мин` : `${t} с`}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+function buildAlphaRow(){
+  const el = document.getElementById('alpha-progress');
+  el.innerHTML = EASY_LETTERS.map((l,i)=>`<div class="alpha-letter${i===0?' active':''}" id="al-${i}">${l}</div>`).join('');
+}
 
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                                <Hash className="w-5 h-5 text-indigo-500" /> Смена буквы каждые
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {INTERVAL_PRESETS.map(t => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setPairInterval(t)}
-                                        className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
-                                            pairInterval === t 
-                                            ? 'bg-indigo-600 text-white shadow-md' 
-                                            : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {t} сек
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+// ══ COUNTDOWN ══
+function startCountdown(){
+  const ov=document.getElementById('countdown-overlay');
+  const nEl=document.getElementById('countdown-num');
+  const lEl=document.getElementById('countdown-label');
+  ov.classList.add('show');
+  let n=3; nEl.textContent=n; lEl.textContent='ПРИГОТОВЬСЯ'; beep(440,.08,.22);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){nEl.textContent=n;nEl.style.animation='none';nEl.offsetHeight;nEl.style.animation='';beep(440,.08,.22);}
+    else{clearInterval(tick);nEl.textContent='→';nEl.style.animation='none';nEl.offsetHeight;nEl.style.animation='';lEl.textContent='ПОЕХАЛИ';beep(660,.25,.38);
+      setTimeout(()=>{ov.classList.remove('show');startRound();},700);}
+  },1000);
+}
 
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-indigo-500" /> Режим игры
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => setUseTopic(true)}
-                                    className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
-                                        useTopic 
-                                        ? 'bg-indigo-600 text-white shadow-md' 
-                                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    Случайная тема
-                                </button>
-                                <button
-                                    onClick={() => setUseTopic(false)}
-                                    className={`py-3 px-2 rounded-xl text-sm font-bold transition-all ${
-                                        !useTopic 
-                                        ? 'bg-indigo-600 text-white shadow-md' 
-                                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    Без темы
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+// ══ ROUND ══
+function startRound(){
+  const mode = gs.mode;
+  if(mode==='sprint') startSprint();
+  else if(mode==='alphabet') startAlphabet();
+  else startLetterRound();
+}
 
-                    <button
-                        onClick={() => startGame()}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-4 rounded-xl shadow-lg transition-colors text-lg mt-4 flex items-center justify-center gap-2 shrink-0"
-                    >
-                        Начать игру
-                    </button>
-                </div>
-            );
+function startLetterRound(){
+  if(gs.letterIdx >= gs.letters.length){ endGame(); return; }
+  const letter = gs.letters[gs.letterIdx];
+  const mode = gs.mode;
 
-            const renderRules = () => (
-                <div className="flex flex-col h-full max-w-md mx-auto p-4 animate-fade-in bg-white">
-                    <div className="text-center mb-6 mt-2">
-                        <h2 className="text-2xl font-bold text-gray-800">Как это работает?</h2>
-                    </div>
-                    
-                    <div className="flex-1 overflow-y-auto space-y-4 pb-4 text-gray-700">
-                        <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
-                            <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-indigo-600" /> Суть тренажера
-                            </h3>
-                            <p className="text-sm font-medium leading-relaxed text-indigo-800">
-                                Это жесткий и эффективный тренажер для активного словарного запаса. Он учит быстро доставать нужные слова из памяти и строить плотную речь.
-                            </p>
-                        </div>
+  // Letter display
+  document.getElementById('letter-big').textContent = letter;
+  gs.roundsPlayed++;
+  document.getElementById('g-prog-label').textContent = 'Буква '+gs.roundsPlayed;
 
-                        <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                            <h3 className="font-bold text-gray-800 mb-3">Правила:</h3>
-                            <ul className="space-y-3 text-sm">
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-indigo-600">1.</span> 
-                                    <span>Бот выдает <b>Случайную Букву</b> и, если включено, <b>Тему</b> (например, Буква "К", Тема "Еда").</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-indigo-600">2.</span> 
-                                    <span>До конца таймера называй вслух слова на эту букву. <b>Старайся называть только имена существительные</b> (например: Картошка, Капуста, Кефир).</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-indigo-600">3.</span> 
-                                    <span>Главное правило: <b>старайся не замолкать</b> и убрать звуки-паразиты "эээ", "ммм".</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <span className="font-bold text-indigo-600">4.</span> 
-                                    <span><b>Игра с друзьями:</b> передавайте телефон по кругу или играйте вместе. Соревнуйтесь, кто назовет больше слов за отведенное время!</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <button onClick={() => setScreen('SETTINGS')} className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 rounded-xl w-full transition-colors">
-                        Понятно, назад
-                    </button>
-                </div>
-            );
+  // Badge
+  const wrap = document.getElementById('cat-badge-wrap');
+  if(mode==='category'){
+    wrap.innerHTML=`<div class="cat-badge-big">${CATEGORIES[gs.cat].emoji} ${CATEGORIES[gs.cat].name}</div>`;
+    document.getElementById('letter-sub').textContent='Нарицательные из категории — в приоритете';
+    document.getElementById('letter-eyebrow').textContent='Буква и категория';
+  } else if(mode==='forbidden'){
+    wrap.innerHTML=`<div class="forbidden-badge">🚫 Нельзя: ${CATEGORIES[gs.forbidCat].name}</div>`;
+    document.getElementById('letter-sub').textContent='Эту категорию называть нельзя!';
+    document.getElementById('letter-eyebrow').textContent='Запрещённые слова';
+  } else {
+    wrap.innerHTML='';
+    document.getElementById('letter-sub').textContent='Приоритет — имена нарицательные';
+    document.getElementById('letter-eyebrow').textContent='Называй слова на букву';
+  }
 
-            const renderGame = () => {
-                const progress = (pairTimeLeft / pairInterval) * 100;
-                const isUrgent = pairTimeLeft < 4; 
+  // Timer
+  const roundSec = cfg.letterSec || 30;
+  let sec = roundSec;
+  const bar = document.getElementById('g-timer-bar');
+  bar.style.transition='none'; bar.style.width='100%'; bar.offsetHeight;
+  bar.style.transition='width 1s linear';
+  bar.style.background='var(--p)';
+  updLetterTimer(sec, roundSec);
 
-                return (
-                    <div className="flex flex-col h-full max-w-md mx-auto bg-gray-50">
-                        <div className="flex justify-between items-center p-4">
-                            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                <span className="font-mono font-bold text-gray-700 text-lg">{formatTime(Math.ceil(roundTimeLeft))}</span>
-                            </div>
-                            <button onClick={stopGame} className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors">
-                                <Square className="w-5 h-5 fill-current" />
-                            </button>
-                        </div>
+  letterT = setInterval(()=>{
+    sec--;
+    updLetterTimer(sec, roundSec);
+    if(sec<=5){ beep(440,.06,.15); }
+    if(sec<=0){
+      clearInterval(letterT);
+      sndTick();
+      gs.letterIdx++;
+      if(mode==='forbidden') gs.forbidCat = randCat();
+      if(mode==='category') gs.cat = randCat();
+      startLetterRound();
+    }
+  },1000);
+}
 
-                        <div className="flex-1 flex flex-col items-center justify-center p-6 relative">
-                            {/* Topic Badge */}
-                            {currentTopic && (
-                                <div key={currentTopic} className="mb-4 animate-fade-in bg-indigo-600 text-white px-6 py-2 rounded-full shadow-md flex items-center gap-2 z-10">
-                                    <span className="text-xs uppercase tracking-wider opacity-80">Тема:</span>
-                                    <span className="text-sm font-bold uppercase tracking-wide">{currentTopic}</span>
-                                </div>
-                            )}
-                            
-                            {/* Giant Letter */}
-                            <div key={currentLetter} className="animate-scale-in flex items-center justify-center w-full z-10">
-                                <h1 className="text-[140px] leading-none font-black text-gray-900 drop-shadow-sm">
-                                    {currentLetter}
-                                </h1>
-                            </div>
+function updLetterTimer(t, max){
+  document.getElementById('g-timer').textContent = t;
+  document.getElementById('g-sess-time').textContent = '0:'+(t<10?'0':'')+t;
+  document.getElementById('g-timer-bar').style.width = (t/max*100)+'%';
+  if(t<=5) document.getElementById('g-timer-bar').style.background='var(--red)';
+}
 
-                            {/* Timer */}
-                            <div className="relative w-32 h-32 flex items-center justify-center mt-6 z-10">
-                                <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="64" cy="64" r="56" className="stroke-gray-200" strokeWidth="8" fill="transparent" />
-                                    <circle 
-                                        cx="64" cy="64" r="56" 
-                                        className={`transition-all duration-100 ease-linear ${isUrgent ? 'stroke-red-500' : 'stroke-indigo-500'}`} 
-                                        strokeWidth="8" fill="transparent" 
-                                        strokeDasharray={351.8} 
-                                        strokeDashoffset={351.8 - (351.8 * progress) / 100} 
-                                        strokeLinecap="round" 
-                                    />
-                                </svg>
-                                <span className={`absolute text-4xl font-black font-mono ${isUrgent ? 'text-red-600' : 'text-indigo-600'}`}>
-                                    {Math.ceil(pairTimeLeft)}
-                                </span>
-                            </div>
-                            
-                            <p className="text-xs text-gray-400 mt-3 uppercase tracking-widest font-bold">смена буквы</p>
-                        </div>
+// ══ SPRINT ══
+function startSprint(){
+  gs.sprintIdx=0; gs.sprintSec=gs.sprintTotal;
+  document.getElementById('letter-eyebrow').textContent='Успей назвать слово';
+  document.getElementById('letter-sub').textContent='Буква меняется каждые 5 сек';
+  document.getElementById('cat-badge-wrap').innerHTML='';
+  document.getElementById('g-sess-time').textContent='';
+  updateSprintLetter();
 
-                        <div className="bg-white p-4 border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] relative z-20">
-                            <div className="max-w-sm mx-auto flex items-center gap-4">
-                                <button onClick={() => {
-                                    initAudio(); // Подстраховка для снятия блокировки звука
-                                    setIsPlaying(!isPlaying);
-                                }} className="p-4 rounded-2xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 shrink-0 transition-colors">
-                                    {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                                </button>
-                                <button onClick={() => {
-                                    if(soundEnabled) playBeep();
-                                    nextPair();
-                                }} disabled={!isPlaying} className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-4 rounded-2xl font-bold text-xl shadow-md active:scale-95 transition-all">
-                                    Дальше <SkipForward className="w-6 h-6" />
-                                </button>
-                            </div>
-                        </div>
+  const bar = document.getElementById('g-timer-bar');
+  bar.style.transition='none'; bar.style.width='100%'; bar.offsetHeight;
+  bar.style.transition='width 1s linear';
+  bar.style.background='var(--p)';
 
-                        {!isPlaying && (
-                            <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
-                                <div className="text-center p-8 bg-white shadow-2xl rounded-3xl border border-gray-100 max-w-xs mx-4">
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Пауза</h2>
-                                    <button onClick={() => {
-                                        initAudio();
-                                        setIsPlaying(true);
-                                    }} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-lg mt-4 transition-transform active:scale-95">
-                                        Продолжить
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            };
+  mainT = setInterval(()=>{
+    gs.sprintSec--;
+    const pct = gs.sprintSec/gs.sprintTotal*100;
+    document.getElementById('g-timer-bar').style.width=pct+'%';
+    document.getElementById('g-timer').textContent=gs.sprintSec;
+    document.getElementById('g-sess-time').textContent='';
+    document.getElementById('g-prog-label').textContent='Буква '+(gs.sprintIdx+1)+' из '+gs.sprintLetters.length;
 
-            const renderResults = () => {
-                const timeSpent = totalDuration - Math.max(0, roundTimeLeft);
-                return (
-                    <div className="flex flex-col h-full max-w-md mx-auto p-4 animate-fade-in justify-center bg-gray-50">
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="bg-indigo-600 p-8 text-center text-white">
-                                <h1 className="text-3xl font-bold mb-2">Тренировка завершена!</h1>
-                                <p className="opacity-90 text-indigo-100">Мозг отлично поработал</p>
-                            </div>
-                            
-                            <div className="p-6 space-y-5">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 p-4 rounded-2xl text-center">
-                                        <span className="block text-gray-400 text-xs uppercase font-bold tracking-wider mb-1">Букв пройдено</span>
-                                        <span className="block text-4xl font-black text-gray-800">{pairsCount + 1}</span>
-                                    </div>
-                                    <div className="bg-gray-50 p-4 rounded-2xl text-center">
-                                        <span className="block text-gray-400 text-xs uppercase font-bold tracking-wider mb-1">Общее время</span>
-                                        <span className="block text-4xl font-black text-gray-800">{formatTime(Math.ceil(timeSpent))}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="p-6 bg-gray-50 space-y-3">
-                                <button onClick={handleQuickStart} className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow transition-all active:scale-95">
-                                    <RotateCcw className="w-5 h-5" /> Ещё разок
-                                </button>
-                                <button onClick={() => setScreen('SETTINGS')} className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold py-4 rounded-xl transition-colors">
-                                    <Settings className="w-5 h-5" /> В меню
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
+    if(gs.sprintSec % 5 === 0 && gs.sprintSec > 0){
+      gs.sprintIdx++;
+      if(gs.sprintIdx >= gs.sprintLetters.length){ clearInterval(mainT); endGame(); return; }
+      updateSprintLetter(); sndNext();
+    }
+    if(gs.sprintSec<=10) document.getElementById('g-timer-bar').style.background='var(--red)';
+    if(gs.sprintSec<=0){ clearInterval(mainT); sndEnd(); endGame(); }
+    gs.roundsPlayed = gs.sprintIdx+1;
+  },1000);
+}
 
-            return (
-                <>
-                  {screen === 'SETTINGS' && renderStartScreen()}
-                  {screen === 'RULES' && renderRules()}
-                  {screen === 'GAME' && renderGame()}
-                  {screen === 'RESULTS' && renderResults()}
-                </>
-            );
-        }
+function updateSprintLetter(){
+  document.getElementById('letter-big').textContent = gs.sprintLetters[gs.sprintIdx];
+  document.querySelectorAll('.sprint-letter').forEach((el,i)=>{
+    el.className='sprint-letter'+(i===gs.sprintIdx?' active':i<gs.sprintIdx?' done':'');
+  });
+}
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+// ══ ALPHABET ══
+function startAlphabet(){
+  gs.alphaIdx=0;
+  const cat = gs.alphaCat;
+  document.getElementById('cat-badge-wrap').innerHTML=`<div class="cat-badge-big">${CATEGORIES[cat].emoji} ${CATEGORIES[cat].name}</div>`;
+  document.getElementById('letter-sub').textContent='Весь алфавит в одной категории';
+  document.getElementById('letter-eyebrow').textContent='Тематический алфавит';
+  document.getElementById('g-sess-time').textContent='';
+  loadAlphaLetter();
+  startAlphaTimer();
+}
+
+function loadAlphaLetter(){
+  if(gs.alphaIdx >= EASY_LETTERS.length){ sndEnd(); endGame(); return; }
+  const letter = EASY_LETTERS[gs.alphaIdx];
+  document.getElementById('letter-big').textContent=letter;
+  document.getElementById('g-prog-label').textContent='Буква '+(gs.alphaIdx+1)+' из '+EASY_LETTERS.length;
+  document.getElementById('g-prog-pct').textContent=Math.round(gs.alphaIdx/EASY_LETTERS.length*100)+'%';
+  document.querySelectorAll('.alpha-letter').forEach((el,i)=>{
+    el.className='alpha-letter'+(i===gs.alphaIdx?' active':i<gs.alphaIdx?' done':'');
+  });
+  gs.roundsPlayed = gs.alphaIdx+1;
+  resetAlphaTimer();
+}
+
+let alphaLetterSec = 30;
+function startAlphaTimer(){
+  alphaLetterSec=cfg.letterSec||30;
+  const bar=document.getElementById('g-timer-bar');
+  bar.style.transition='none';bar.style.width='100%';bar.offsetHeight;
+  bar.style.transition='width 1s linear';bar.style.background='var(--p)';
+  updLetterTimer(alphaLetterSec,30);
+}
+
+function resetAlphaTimer(){
+  clearInterval(letterT);
+  alphaLetterSec=cfg.letterSec||30;
+  const bar=document.getElementById('g-timer-bar');
+  bar.style.transition='none';bar.style.width='100%';bar.offsetHeight;
+  bar.style.transition='width 1s linear';bar.style.background='var(--p)';
+  const alphaSec=cfg.letterSec||30;
+  updLetterTimer(alphaLetterSec,alphaSec);
+  letterT=setInterval(()=>{
+    alphaLetterSec--;
+    updLetterTimer(alphaLetterSec,alphaSec);
+    if(alphaLetterSec<=5) beep(440,.06,.15);
+    if(alphaLetterSec<=0){ clearInterval(letterT); sndTick(); gs.alphaIdx++; loadAlphaLetter(); }
+  },1000);
+}
+
+// Skip button
+document.getElementById('g-skip').addEventListener('click',()=>{
+  if(gs.paused) return;
+  clearInterval(letterT);
+  const mode = gs.mode;
+  if(mode==='alphabet'){ gs.alphaIdx++; loadAlphaLetter(); }
+  else { gs.letterIdx++; if(mode==='forbidden') gs.forbidCat=randCat(); if(mode==='category') gs.cat=randCat(); startLetterRound(); }
+  sndNext();
+});
+
+// ══ PAUSE ══
+let pauseLeft=0;
+function setPaused(v){
+  gs.paused=v;
+  const btn=document.getElementById('g-pause');
+  const icon=document.getElementById('g-pause-icon');
+  const lbl=document.getElementById('g-pause-lbl');
+  if(v){
+    clearInterval(mainT);clearInterval(letterT);
+    btn.classList.add('pause-active');icon.textContent='▶';lbl.textContent='Играть';
+    document.getElementById('pause-overlay').classList.add('show');
+  } else {
+    document.getElementById('pause-overlay').classList.remove('show');
+    btn.classList.remove('pause-active');icon.textContent='⏸';lbl.textContent='Пауза';
+    // Resume based on mode
+    if(gs.mode==='sprint') startSprint();
+    else if(gs.mode==='alphabet') resetAlphaTimer();
+    else { gs.letterIdx = Math.max(0,gs.letterIdx-1); startLetterRound(); }
+  }
+}
+document.getElementById('g-pause').addEventListener('click',()=>setPaused(!gs.paused));
+document.getElementById('pause-resume').addEventListener('click',()=>setPaused(false));
+document.getElementById('pause-menu-btn').addEventListener('click',()=>{ clearInterval(mainT);clearInterval(letterT);document.getElementById('pause-overlay').classList.remove('show');showScreen('home'); });
+document.getElementById('g-stop').addEventListener('click',()=>{ clearInterval(mainT);clearInterval(letterT);endGame(); });
+document.getElementById('g-menu').addEventListener('click',()=>{ clearInterval(mainT);clearInterval(letterT);showScreen('home'); });
+
+function endGame(){ clearInterval(mainT);clearInterval(letterT);showResult(); }
+
+// ══ RESULT ══
+function showResult(){
+  const titles=['Отлично!','Словарь в деле!','Мощно!','Так держать!'];
+  const subs=['Словарный запас в деле','Буквы покорились','Речь становится быстрее','Продолжай тренироваться'];
+  document.getElementById('r-title').textContent=titles[Math.floor(Math.random()*titles.length)];
+  document.getElementById('r-sub').textContent=subs[Math.floor(Math.random()*subs.length)];
+  document.getElementById('r-rounds').textContent=gs.roundsPlayed||0;
+  document.getElementById('r-mode').textContent=MODE_NAMES[gs.mode]||'—';
+  showScreen('result');
+}
+
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  window.scrollTo(0,0);
+}
+if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();}
+</script>
 </body>
 </html>
