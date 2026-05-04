@@ -357,16 +357,28 @@ const ALPHABET = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ'.spli
 const EASY_LETTERS = 'АБВГДЕЖЗИКЛМНОПРСТУЭЮЯ'.split('');
 
 const CATEGORIES = {
-  animals:   { name:'Животные', emoji:'🐾' },
-  food:      { name:'Еда и напитки', emoji:'🍎' },
-  nature:    { name:'Природа', emoji:'🌿' },
-  objects:   { name:'Предметы', emoji:'🪑' },
-  body:      { name:'Тело и здоровье', emoji:'💪' },
-  clothes:   { name:'Одежда', emoji:'👗' },
-  transport: { name:'Транспорт', emoji:'🚗' },
-  home:      { name:'Дом и быт', emoji:'🏠' },
-  sport:     { name:'Спорт', emoji:'⚽' },
-  nature2:   { name:'Явления природы', emoji:'⛈️' },
+  // Нарицательные
+  animals:   { name:'Животные', emoji:'🐾', proper:false },
+  food:      { name:'Еда и напитки', emoji:'🍎', proper:false },
+  nature:    { name:'Природа', emoji:'🌿', proper:false },
+  objects:   { name:'Предметы', emoji:'🪑', proper:false },
+  body:      { name:'Тело и здоровье', emoji:'💪', proper:false },
+  clothes:   { name:'Одежда', emoji:'👗', proper:false },
+  transport: { name:'Транспорт', emoji:'🚗', proper:false },
+  home:      { name:'Дом и быт', emoji:'🏠', proper:false },
+  sport:     { name:'Спорт', emoji:'⚽', proper:false },
+  nature2:   { name:'Явления природы', emoji:'⛈️', proper:false },
+  // С именами собственными
+  cities:    { name:'Города мира', emoji:'🏙️', proper:true },
+  countries: { name:'Страны', emoji:'🌍', proper:true },
+  names:     { name:'Имена', emoji:'👤', proper:true },
+  brands:    { name:'Бренды', emoji:'🏷️', proper:true },
+  movies:    { name:'Фильмы', emoji:'🎬', proper:true },
+  books:     { name:'Книги', emoji:'📚', proper:true },
+  music:     { name:'Музыканты и группы', emoji:'🎵', proper:true },
+  sports_teams: { name:'Спортивные команды', emoji:'🏆', proper:true },
+  celebs:    { name:'Знаменитости', emoji:'⭐', proper:true },
+  geography: { name:'Реки, горы, моря', emoji:'🗺️', proper:true },
 };
 
 const CAT_KEYS = Object.keys(CATEGORIES);
@@ -527,7 +539,8 @@ function startLetterRound(){
     document.getElementById('letter-sub').textContent='Нарицательные из категории — в приоритете';
     document.getElementById('letter-eyebrow').textContent='Буква и категория';
   } else if(mode==='forbidden'){
-    wrap.innerHTML=`<div class="forbidden-badge">🚫 Нельзя: ${CATEGORIES[gs.forbidCat].name}</div>`;
+    const forbObj = CATEGORIES[gs.forbidCat];
+    wrap.innerHTML=`<div class="forbidden-badge">🚫 Нельзя: ${forbObj.name}</div>`;
     document.getElementById('letter-sub').textContent='Эту категорию называть нельзя!';
     document.getElementById('letter-eyebrow').textContent='Запрещённые слова';
   } else {
